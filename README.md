@@ -41,6 +41,27 @@ fig, axes = styled_subplots(1, 2, overrides=overrides)
 palette = get_palette(palette=overrides.palette)
 ```
 
+## Choose A Palette
+
+The default palette is `blue-green`: blue and cyan for the main signal, green for paired comparisons, and warm accent colors for highlights.
+
+![Built-in palette reference](assets/palette_reference.png)
+
+Built-in palettes:
+
+| Palette | Best For |
+| --- | --- |
+| `blue-green` | Default scientific plots, paired comparisons, clean multi-panel figures |
+| `nature` / `npg` | Nature-style categorical plots |
+| `jama` | Muted clinical or biomedical figures |
+| `lancet` | High-contrast journal-style figures |
+| `nejm` | Warm clinical-style palettes |
+| `okabe-ito` | Colorblind-safe categorical plots |
+| `tableau` | General multi-category plots |
+| `gray` | Print, drafts, or single-channel figures |
+
+To change the default for all new plots, edit `DEFAULT_PALETTE` in `scripts/plot_config.py`. To change one figure only, use `PlotOverrides(palette="okabe-ito")`.
+
 ## Change The Config
 
 Edit:
@@ -58,6 +79,17 @@ Common settings to adjust:
 - `OUTPUT_DPI` and `SAVE_PAD_INCHES`: control export quality and padding.
 
 Built-in palettes include `blue-green`, `nature`, `npg`, `jama`, `lancet`, `nejm`, `okabe-ito`, `tableau`, and `gray`.
+
+## Recommended Skills
+
+These public skill repositories work well alongside this one when you need a different figure type or visual grammar:
+
+- [nature-skills](https://github.com/Yuan1z0825/nature-skills): Nature-style scientific plotting and academic expression.
+- [AgentFigureGallery](https://github.com/Dsadd4/AgentFigureGallery): reference-driven scientific plotting examples for coding agents.
+- [engineering-figure-agent](https://github.com/heyu-233/engineering-figure-agent): engineering figures, architecture diagrams, flowcharts, curves, and multi-panel layouts.
+- [Codex-drawio-skill](https://github.com/SHALINS428/Codex-drawio-skill): editable draw.io / diagrams.net academic diagrams.
+- [drawio-skill](https://github.com/Agents365-ai/drawio-skill): flowcharts, architecture diagrams, and draw.io exports from natural language.
+- [Awesome-Scientific-Skills](https://github.com/InternScience/Awesome-Scientific-Skills): a curated index for discovering more scientific research skills.
 
 ## Output
 
