@@ -133,6 +133,18 @@ my_plot.png
 my_plot.svg
 ```
 
+## Related Public Skill Repositories
+
+These repositories can complement this skill when a figure needs a different visual grammar. Check each repository's license before reusing or redistributing its contents.
+
+- [nature-skills](https://github.com/Yuan1z0825/nature-skills): Nature-style academic expression and scientific plotting guidance.
+- [AgentFigureGallery](https://github.com/Dsadd4/AgentFigureGallery): reference-driven scientific plotting skill for coding agents.
+- [engineering-figure-agent](https://github.com/heyu-233/engineering-figure-agent): publication-style engineering and computer-science figures, including architecture diagrams, flowcharts, curves, and multi-panel figures.
+- [Codex-drawio-skill](https://github.com/SHALINS428/Codex-drawio-skill): editable academic diagrams in draw.io / diagrams.net with PNG export.
+- [drawio-skill](https://github.com/Agents365-ai/drawio-skill): natural-language draw.io diagrams, flowcharts, architecture diagrams, and multi-format exports.
+- [Awesome-Scientific-Skills](https://github.com/InternScience/Awesome-Scientific-Skills): curated index for discovering more scientific research skills.
+- [medical-research-skills](https://github.com/aipoch/medical-research-skills): biomedical research skill collection with data analysis, evidence synthesis, and academic-writing workflows.
+
 ## Notes
 
 - Do not modify `plot_config.py` unless the user explicitly wants global style changes.
