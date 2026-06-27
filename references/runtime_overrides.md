@@ -8,10 +8,12 @@ Use this reference when a blue-green plotting task needs live control over aspec
 - `width`: figure width in inches
 - `height`: figure height in inches
 - `scale`: multiplier applied after size calculation
+- `palette`: named palette such as `blue-green`, `nature`, `jama`, `lancet`, `nejm`, `okabe-ito`, `tableau`, or `gray`
 - `colors`: comma-separated hex colors or a Python list
 - `formats`: tuple/list such as `("png", "svg")` or `("png",)`
 - `dpi`: PNG DPI override; default comes from `PlotConfig.OUTPUT_DPI`
 - `grid`: optional bool override if a diagnostic plot needs grid lines
+- `lock_axes_aspect`: bool for locking each panel's axes box to `PlotConfig.AXES_ASPECT`; default is true
 
 ## Size Resolution
 
@@ -22,13 +24,16 @@ Use this order:
 3. Else use `PlotConfig.FIG_WIDTH * ncols`, `PlotConfig.FIG_HEIGHT * nrows`.
 4. Apply `scale` last.
 
+The figure canvas size and each panel's inner axes ratio are separate. Leave `lock_axes_aspect=True` when every panel should keep the configured axes ratio.
+
 ## Palette Resolution
 
 Use this order:
 
 1. User-supplied colors.
-2. Existing script palette if it already encodes domain meaning.
-3. `PlotConfig.COLOR_LIST`.
+2. User-supplied named palette.
+3. Existing script palette if it already encodes domain meaning.
+4. `PlotConfig.COLOR_LIST`.
 
 For ordered groups, map labels in the same order they appear in the data or in the user-provided legend.
 
@@ -96,9 +101,12 @@ Supported flags:
 --plot-aspect 1.6
 --plot-width 3.2 --plot-height 2.0
 --plot-scale 1.15
+--plot-palette nature
 --plot-colors "#367DB0,#F7941D,#ED1C24"
 --plot-formats "png,svg"
 --plot-dpi 450
 --plot-grid
 --no-plot-grid
+--lock-plot-axes-aspect
+--free-plot-axes-aspect
 ```

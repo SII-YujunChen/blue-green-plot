@@ -60,10 +60,12 @@ class PlotOverrides:
     width: float | None = None
     height: float | None = None
     scale: float = 1.0
+    palette: str | None = None
     colors: Sequence[str] | str | None = None
     formats: Sequence[str] = ("png", "svg")
     dpi: int | None = None
     grid: bool | None = None
+    lock_axes_aspect: bool = True
     config_root: str | Path | None = None
 
 
@@ -97,24 +99,46 @@ def _parse_color_string(colors: str) -> list[str]:
     return [part.strip() for part in colors.split(",") if part.strip()]
 
 
+def list_palettes(config_root: str | Path | None = None) -> list[str]:
+    """Return available named palettes from PlotConfig."""
+    plot_config = config(config_root).PlotConfig
+    palettes = getattr(plot_config, "PALETTES", {})
+    return sorted(str(name) for name in palettes)
+
+
+def _named_palette(name: str | None, config_root: str | Path | None = None) -> list[str]:
+    plot_config = config(config_root).PlotConfig
+    palettes = getattr(plot_config, "PALETTES", {})
+    if not palettes:
+        return list(plot_config.COLOR_LIST)
+    palette_name = name or getattr(plot_config, "DEFAULT_PALETTE", None) or "blue-green"
+    palette_lookup = {str(key).lower(): value for key, value in palettes.items()}
+    key = str(palette_name).lower()
+    if key not in palette_lookup:
+        available = ", ".join(sorted(str(item) for item in palettes))
+        raise ValueError(f"Unknown palette {palette_name!r}; available palettes: {available}")
+    return list(palette_lookup[key])
+
+
 def get_palette(
     colors: Sequence[str] | str | None = None,
     count: int | None = None,
     config_root: str | Path | None = None,
+    palette: str | None = None,
 ) -> list[str]:
     cfg = config(config_root)
     if colors is None:
-        palette = list(cfg.PlotConfig.COLOR_LIST)
+        resolved_palette = _named_palette(palette, config_root)
     elif isinstance(colors, str):
-        palette = _parse_color_string(colors)
+        resolved_palette = _parse_color_string(colors)
     else:
-        palette = list(colors)
-    if not palette:
-        palette = list(cfg.PlotConfig.COLOR_LIST)
-    if count is None or count <= len(palette):
-        return palette if count is None else palette[:count]
-    repeats = (count + len(palette) - 1) // len(palette)
-    return (palette * repeats)[:count]
+        resolved_palette = list(colors)
+    if not resolved_palette:
+        resolved_palette = list(cfg.PlotConfig.COLOR_LIST)
+    if count is None or count <= len(resolved_palette):
+        return resolved_palette if count is None else resolved_palette[:count]
+    repeats = (count + len(resolved_palette) - 1) // len(resolved_palette)
+    return (resolved_palette * repeats)[:count]
 
 
 def darken_color(color: str, factor: float = 0.65) -> str:
@@ -199,13 +223,19 @@ def add_p_value_bracket(
 def paired_color_map(
     labels: Sequence[str] = ("A", "B"),
     config_root: str | Path | None = None,
+    *,
+    colors: Sequence[str] | str | None = None,
+    palette: str | None = None,
 ) -> dict[str, str]:
     """Return stable colors for a two-condition comparison."""
     if len(labels) != 2:
         raise ValueError(f"labels must contain exactly two entries, got {labels!r}")
-    plot_config = config(config_root).PlotConfig
-    color_a = getattr(plot_config, "PAIR_COLOR_A", getattr(plot_config, "COLOR_PRIMARY", PAIR_A_FALLBACK_COLOR))
-    color_b = getattr(plot_config, "PAIR_COLOR_B", getattr(plot_config, "COLOR_ACCENT", PAIR_B_FALLBACK_COLOR))
+    if colors is not None or palette is not None:
+        color_a, color_b = get_palette(colors, 2, config_root, palette=palette)
+    else:
+        plot_config = config(config_root).PlotConfig
+        color_a = getattr(plot_config, "PAIR_COLOR_A", getattr(plot_config, "COLOR_PRIMARY", PAIR_A_FALLBACK_COLOR))
+        color_b = getattr(plot_config, "PAIR_COLOR_B", getattr(plot_config, "COLOR_ACCENT", PAIR_B_FALLBACK_COLOR))
     return {str(labels[0]): color_a, str(labels[1]): color_b}
 
 
@@ -213,9 +243,12 @@ def condition_color(
     label: str,
     labels: Sequence[str] = ("A", "B"),
     config_root: str | Path | None = None,
+    *,
+    colors: Sequence[str] | str | None = None,
+    palette: str | None = None,
 ) -> str:
     """Return the semantic color for one label in a two-condition comparison."""
-    colors = paired_color_map(labels, config_root)
+    colors = paired_color_map(labels, config_root, colors=colors, palette=palette)
     key = str(label)
     if key not in colors:
         raise ValueError(f"Unknown condition label {label!r}; expected one of {tuple(colors)}")
@@ -226,10 +259,23 @@ def ordered_color_map(
     labels: Sequence[str | float],
     colors: Sequence[str] | str | None = None,
     config_root: str | Path | None = None,
+    *,
+    palette: str | None = None,
 ) -> dict[str | float, str]:
     """Map any ordered labels to palette colors in input order."""
-    palette = get_palette(colors, len(labels), config_root)
-    return {label: palette[idx] for idx, label in enumerate(labels)}
+    resolved_palette = get_palette(colors, len(labels), config_root, palette=palette)
+    return {label: resolved_palette[idx] for idx, label in enumerate(labels)}
+
+
+def apply_axes_aspect(ax, *, overrides: PlotOverrides | None = None):
+    """Lock the axes box ratio to PlotConfig.AXES_ASPECT when enabled."""
+    overrides = overrides or PlotOverrides()
+    if not overrides.lock_axes_aspect:
+        return
+    plot_config = config(overrides.config_root).PlotConfig
+    axes_aspect = getattr(plot_config, "AXES_ASPECT", None)
+    if axes_aspect and hasattr(ax, "set_box_aspect"):
+        ax.set_box_aspect(1 / float(axes_aspect))
 
 
 def styled_subplots(
@@ -247,6 +293,7 @@ def styled_subplots(
     axes_iter = axes.ravel() if hasattr(axes, "ravel") else [axes]
     for ax in axes_iter:
         cfg.apply_axis_style(ax)
+        apply_axes_aspect(ax, overrides=overrides)
         if overrides.grid is not None:
             ax.grid(bool(overrides.grid))
     return fig, axes
@@ -255,6 +302,7 @@ def styled_subplots(
 def apply_axis(ax, *, overrides: PlotOverrides | None = None):
     cfg = config(overrides.config_root if overrides else None)
     cfg.apply_axis_style(ax)
+    apply_axes_aspect(ax, overrides=overrides)
     if overrides and overrides.grid is not None:
         ax.grid(bool(overrides.grid))
 
@@ -307,6 +355,11 @@ def add_style_args(parser, *, prefix: str = "plot"):
     parser.add_argument(f"--{prefix}-height", type=float, default=None, help="Figure height in inches.")
     parser.add_argument(f"--{prefix}-scale", type=float, default=1.0, help="Scale applied after size resolution.")
     parser.add_argument(
+        f"--{prefix}-palette",
+        default=None,
+        help="Named palette from PlotConfig.PALETTES, e.g. blue-green, nature, jama, lancet, okabe-ito.",
+    )
+    parser.add_argument(
         f"--{prefix}-colors",
         default=None,
         help="Comma-separated color list, e.g. '#367DB0,#F7941D,#ED1C24'.",
@@ -320,20 +373,37 @@ def add_style_args(parser, *, prefix: str = "plot"):
     grid_group = parser.add_mutually_exclusive_group()
     grid_group.add_argument(f"--{prefix}-grid", action="store_true", default=None, help="Enable grid lines.")
     grid_group.add_argument(f"--no-{prefix}-grid", action="store_false", dest=f"{prefix}_grid", help="Disable grid lines.")
+    aspect_group = parser.add_mutually_exclusive_group()
+    aspect_group.add_argument(
+        f"--lock-{prefix}-axes-aspect",
+        action="store_true",
+        default=None,
+        dest=f"{prefix}_lock_axes_aspect",
+        help="Lock each panel's axes box to PlotConfig.AXES_ASPECT.",
+    )
+    aspect_group.add_argument(
+        f"--free-{prefix}-axes-aspect",
+        action="store_false",
+        dest=f"{prefix}_lock_axes_aspect",
+        help="Allow each panel's axes box to stretch.",
+    )
     return parser
 
 
 def overrides_from_args(args, *, prefix: str = "plot", config_root: str | Path | None = None) -> PlotOverrides:
     """Create PlotOverrides from argparse args added by add_style_args()."""
     formats = getattr(args, f"{prefix}_formats", None)
+    lock_axes_aspect = getattr(args, f"{prefix}_lock_axes_aspect", None)
     return PlotOverrides(
         aspect=getattr(args, f"{prefix}_aspect", None),
         width=getattr(args, f"{prefix}_width", None),
         height=getattr(args, f"{prefix}_height", None),
         scale=getattr(args, f"{prefix}_scale", 1.0),
+        palette=getattr(args, f"{prefix}_palette", None),
         colors=getattr(args, f"{prefix}_colors", None),
         formats=tuple(_parse_color_string(formats)) if formats else ("png", "svg"),
         dpi=getattr(args, f"{prefix}_dpi", None),
         grid=getattr(args, f"{prefix}_grid", None),
+        lock_axes_aspect=True if lock_axes_aspect is None else bool(lock_axes_aspect),
         config_root=config_root,
     )

@@ -42,7 +42,9 @@ Use `save_figure(fig, str(path_without_suffix))` instead of raw `fig.savefig(...
 - Save both `png` and `svg` by default.
 - Use `PlotConfig.OUTPUT_DPI` for PNG.
 - Use `PlotConfig.FIG_WIDTH`, `PlotConfig.FIG_HEIGHT`, or scaled multiples for subplot grids.
+- Keep each panel's axes box ratio locked to `PlotConfig.AXES_ASPECT` by default.
 - Use `PlotConfig.COLOR_LIST` or named `PlotConfig` colors instead of hard-coded ad hoc palettes.
+- Use named palettes from `PlotConfig.PALETTES` when a different journal or colorblind-safe style is a better fit.
 - Apply `apply_axis_style(ax)` to every axis.
 - Use `set_xlabel(ax, ...)` and `set_ylabel(ax, ...)` for axis labels.
 - Use `PlotConfig.TITLE_FONTSIZE`, `LABEL_FONTSIZE`, `TICK_FONTSIZE`, and `LEGEND_FONTSIZE`.
@@ -68,19 +70,22 @@ When the user asks to change the image ratio, dimensions, palette, or output for
 
 ```python
 from blue_green_plot import PlotOverrides, styled_subplots, get_palette, paired_color_map, plain_scatter_kwargs, add_p_value_bracket, save_styled_figure
+from plot_config import PlotConfig
 
 overrides = PlotOverrides(
     aspect=1.6,                    # width / height
     scale=1.1,
-    colors=["#367DB0", "#9DC7DD", "#9ED17B"],
+    palette="nature",
     formats=("png", "svg"),
+    lock_axes_aspect=True,
 )
 fig, axes = styled_subplots(1, 2, overrides=overrides)
-palette = get_palette(overrides.colors)
-pair_colors = paired_color_map(("Control", "Treatment"))
+palette = get_palette(overrides.colors, palette=overrides.palette)
+pair_colors = paired_color_map(("Control", "Treatment"), palette=overrides.palette)
 axes[0].scatter(x, y, color=palette[0], **plain_scatter_kwargs())
-bars = axes[1].bar([0, 1], [control_mean, treatment_mean], color=list(pair_colors.values()))
-add_p_value_bracket(axes[1], 0, 1, y=max(bar.get_height() for bar in bars), p_value=0.032)
+x_pos = [-PlotConfig.BAR_PAIR_CENTER_DISTANCE / 2, PlotConfig.BAR_PAIR_CENTER_DISTANCE / 2]
+bars = axes[1].bar(x_pos, [control_mean, treatment_mean], width=PlotConfig.BAR_WIDTH_SINGLE, color=list(pair_colors.values()))
+add_p_value_bracket(axes[1], x_pos[0], x_pos[1], y=max(bar.get_height() for bar in bars), p_value=0.032)
 save_styled_figure(fig, output_base, overrides=overrides)
 ```
 
@@ -119,6 +124,12 @@ Override priority:
 
 Read `references/runtime_overrides.md` when implementing a more complex override UI or CLI.
 
+## Built-In Palettes
+
+Available named palettes: `blue-green`, `nature`, `npg`, `jama`, `lancet`, `nejm`, `okabe-ito`, `tableau`, and `gray`.
+
+Use `blue-green` as the default. Use `okabe-ito` when colorblind-safe categorical colors matter, and use journal-style palettes such as `nature`, `jama`, `lancet`, or `nejm` when matching an established publication look.
+
 ## Patch Checklist
 
 When updating an existing plot script:
@@ -130,9 +141,10 @@ When updating an existing plot script:
 5. Remove ordinary scatter marker borders. For point-line markers, use a darker edge derived from the fill color.
 6. If the plot compares two named conditions, map them with `paired_color_map(...)` so the semantic colors stay stable.
 7. For every bar chart, compute or load the relevant statistical p values and annotate them on the bars.
-8. Keep figure dimensions as config multiples, or route user-controlled dimensions through `PlotOverrides`.
-9. Run `python -m py_compile <script>` and regenerate the requested images.
-10. Confirm both `.png` and `.svg` exist unless the user requested a different format set.
+8. Use `PlotConfig.BAR_WIDTH`, `BAR_WIDTH_SINGLE`, `BAR_PAIR_CENTER_DISTANCE`, and `BAR_X_MARGIN` for bar chart geometry.
+9. Keep figure dimensions as config multiples, or route user-controlled dimensions through `PlotOverrides`.
+10. Run `python -m py_compile <script>` and regenerate the requested images.
+11. Confirm both `.png` and `.svg` exist unless the user requested a different format set.
 
 ## Output Naming
 

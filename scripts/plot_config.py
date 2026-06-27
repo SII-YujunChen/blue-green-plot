@@ -23,12 +23,12 @@ class PlotConfig:
 
     # Fonts.
     FONT_FAMILY = ["Arial", "Arial Unicode MS", "DejaVu Sans"]
-    TITLE_FONTSIZE = 8
+    TITLE_FONTSIZE = 10
     TITLE_FONTWEIGHT = "normal"
-    LABEL_FONTSIZE = 8
+    LABEL_FONTSIZE = 10
     LABEL_FONTWEIGHT = "normal"
-    TICK_FONTSIZE = 8
-    LEGEND_FONTSIZE = 8
+    TICK_FONTSIZE = 9
+    LEGEND_FONTSIZE = 9
 
     # Axis label spacing, in multiples of label font size.
     XLABEL_PAD = 0.5
@@ -40,6 +40,7 @@ class PlotConfig:
     TICK_WIDTH = MINOR_LINE_WIDTH
 
     # Blue-green palette with warm accents for warnings or highlights.
+    DEFAULT_PALETTE = "blue-green"
     COLORS = {
         "Primary": "#367DB0",
         "Secondary": "#9DC7DD",
@@ -49,6 +50,17 @@ class PlotConfig:
         "Purple": "#8B5CF6",
     }
     COLOR_LIST = ["#367DB0", "#9DC7DD", "#9ED17B", "#F7941D", "#ED1C24", "#8B5CF6"]
+    PALETTES = {
+        "blue-green": COLOR_LIST,
+        "nature": ["#E64B35", "#4DBBD5", "#00A087", "#3C5488", "#F39B7F", "#8491B4", "#91D1C2", "#DC0000"],
+        "npg": ["#E64B35", "#4DBBD5", "#00A087", "#3C5488", "#F39B7F", "#8491B4", "#91D1C2", "#DC0000"],
+        "jama": ["#374E55", "#DF8F44", "#00A1D5", "#B24745", "#79AF97", "#6A6599", "#80796B"],
+        "lancet": ["#00468B", "#ED0000", "#42B540", "#0099B4", "#925E9F", "#FDAF91", "#AD002A", "#ADB6B6"],
+        "nejm": ["#BC3C29", "#0072B5", "#E18727", "#20854E", "#7876B1", "#6F99AD", "#FFDC91", "#EE4C97"],
+        "okabe-ito": ["#0072B2", "#E69F00", "#009E73", "#D55E00", "#CC79A7", "#56B4E9", "#F0E442", "#000000"],
+        "tableau": ["#4E79A7", "#F28E2B", "#59A14F", "#E15759", "#76B7B2", "#B07AA1", "#EDC948", "#9C755F"],
+        "gray": ["#252525", "#525252", "#737373", "#969696", "#BDBDBD", "#D9D9D9"],
+    }
     COLOR_PRIMARY = "#367DB0"
     COLOR_SECONDARY = "#9DC7DD"
     COLOR_ACCENT = "#9ED17B"
@@ -77,8 +89,10 @@ class PlotConfig:
     MEAN_LINE_EXTENSION = 0.25
 
     # Bar charts.
-    BAR_WIDTH = 0.35
-    BAR_WIDTH_SINGLE = 0.5
+    BAR_WIDTH = 0.26
+    BAR_WIDTH_SINGLE = 0.34
+    BAR_PAIR_CENTER_DISTANCE = 0.62
+    BAR_X_MARGIN = 0.36
     BAR_ALPHA = 0.8
     BAR_EDGE_COLOR = "black"
     BAR_EDGE_WIDTH = MINOR_LINE_WIDTH
