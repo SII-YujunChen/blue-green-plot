@@ -5,6 +5,22 @@ description: Standardize blue-green scientific plots using the bundled plot_conf
 
 # Blue-Green Plot
 
+## Quick Start
+
+1. Add this folder to your Codex skills directory, or keep it as a reusable skill repository.
+2. Ask your agent: `Use $blue-green-plot to make this matplotlib figure follow a clean blue-green scientific style.`
+3. For a new Python plot, start with the bundled style:
+
+```python
+from plot_config import setup_matplotlib, save_figure
+
+setup_matplotlib()
+# build your matplotlib figure...
+save_figure(fig, "figures/my_plot")
+```
+
+4. For bar charts, provide raw replicate data or trusted p values so the figure can include honest statistical annotations.
+
 ## Core Rule
 
 Use the bundled `scripts/plot_config.py` as the default source of truth for plot styling. If the target codebase already has its own compatible `plot_config.py` and the user asks to preserve it, pass that path through the helper's `config_root` override.
