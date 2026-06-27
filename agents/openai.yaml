@@ -1,0 +1,4 @@
+interface:
+  display_name: "Blue-Green Plot"
+  short_description: "Consistent blue-green plots with p-valued bars and style overrides"
+  default_prompt: "Use $blue-green-plot to make this plot follow the bundled blue-green plot_config style, add p-values to bar charts, and allow aspect ratio and palette overrides."
