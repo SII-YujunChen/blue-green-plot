@@ -41,6 +41,12 @@ fig, axes = styled_subplots(1, 2, overrides=overrides)
 palette = get_palette(palette=overrides.palette)
 ```
 
+## Example Output
+
+The default style works for common scientific plots such as time-course curves, scatter/regression plots, bar charts with p-value annotations, and heatmaps.
+
+![Blue-Green Plot example figure](examples/blue_green_composite_demo.png)
+
 ## Choose A Palette
 
 The default palette is `blue-green`: blue and cyan for the main signal, green for paired comparisons, and warm accent colors for highlights.
